@@ -10,16 +10,24 @@ namespace Functions
 {
     public class FortuneTellerController
     {
+        private readonly ILogger log;
+
+        public FortuneTellerController(ILogger<FortuneTellerController> log)
+        {
+            this.log = log;
+        }
+
         [FunctionName("AskZoltar")]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route =  "api/AskZoltar/{name}")]
             HttpRequest req,
-            string name,
-            ILogger log)
+            string name)
         {
             var rate = RatePrediction();
 
             var prediction = $"Zoltar speaks! {name}, your rate will be '{rate}'.";
+
+            log.LogInformation($"Prediction is done => {prediction}");
 
             return (ActionResult)new OkObjectResult(prediction);
         }
