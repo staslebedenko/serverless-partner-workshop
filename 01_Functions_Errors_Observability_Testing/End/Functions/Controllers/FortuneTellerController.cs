@@ -18,7 +18,7 @@ namespace Functions
         }
 
         [FunctionName("AskZoltar")]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> AskZoltar(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route =  "api/AskZoltar/{name}")]
             HttpRequest req,
             string name)
