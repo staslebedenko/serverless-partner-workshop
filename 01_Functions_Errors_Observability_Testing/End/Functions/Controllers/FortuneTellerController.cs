@@ -8,13 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Functions
 {
-    public class FortuneTellerController
+    public class FortuneTellerController : BaseController
     {
-        private readonly ILogger log;
-
-        public FortuneTellerController(ILogger<FortuneTellerController> log)
+        public FortuneTellerController(
+            ILogger<FortuneTellerController> logger,
+            IHttpContextAccessor httpContextAccessor) : base(logger, httpContextAccessor)
         {
-            this.log = log;
+
         }
 
         [FunctionName("AskZoltar")]
@@ -27,7 +27,9 @@ namespace Functions
 
             var prediction = $"Zoltar speaks! {name}, your rate will be '{rate}'.";
 
-            log.LogInformation($"Prediction is done => {prediction}");
+            base.LogInformation($"Prediction is done => {prediction}");
+
+            // throw new NotImplementedException();
 
             return (ActionResult)new OkObjectResult(prediction);
         }
