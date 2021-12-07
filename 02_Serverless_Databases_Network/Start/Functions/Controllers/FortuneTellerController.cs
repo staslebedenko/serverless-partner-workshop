@@ -5,16 +5,21 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Domain;
+using Data;
 
 namespace Functions
 {
     public class FortuneTellerController : BaseController
     {
+        private readonly FunctionDbContext context;
+
         public FortuneTellerController(
             ILogger<FortuneTellerController> logger,
-            IHttpContextAccessor httpContextAccessor) : base(logger, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            FunctionDbContext context) : base(logger, httpContextAccessor)
         {
-
+            this.context = context;
         }
 
         [FunctionName("AskZoltar")]
@@ -29,6 +34,8 @@ namespace Functions
 
             base.LogInformation($"Prediction is done => {prediction}");
 
+            await this.SavePrediction(name, rate);
+
             // throw new NotImplementedException();
 
             return (ActionResult)new OkObjectResult(prediction);
@@ -38,6 +45,13 @@ namespace Functions
         {
             var random = new Random();
             return random.Next(40, 90);
+        }
+
+        private async Task SavePrediction(string name, int rate)
+        {
+            var person = new Person() { Name = name, Prediction = rate };
+            await this.context.AddAsync(person);
+            await this.context.SaveChangesAsync();
         }
     }
 }
