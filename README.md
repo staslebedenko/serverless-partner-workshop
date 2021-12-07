@@ -162,9 +162,9 @@ az keyvault secret set --vault-name $keyVaultName --name StorageConnectionString
 # on your PC run CMD as administrator, then execute following commands and reboot PC.
 # just copy command setx string output below to CMD and execute, reboot Windows to take effect.
 
-echo "setx SqlConnectionString \""$sqlConString\"
-echo "setx SqlConnectionPassword "$password
-echo "setx StorageConnectionString \""$connString\"
+echo "setx PartnerSqlString \""$sqlConString\"
+echo "setx PartnerSqlPassword "$password
+echo "setx PartnerStorageString \""$connString\"
 echo "setx APPINSIGHTS_INSTRUMENTATIONKEY "$instrumentationKey
 
 az functionapp deployment list-publishing-credentials --resource-group $groupName --name $applicationName
