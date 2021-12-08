@@ -10,7 +10,7 @@ namespace Data
         {
         }
 
-        public DbSet<Person> TestMeterValues { get; set; }
+        public DbSet<Person> Person { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,23 @@ namespace Data
           * dotnet ef migrations add InitialMigration --context FunctionDbContext
           * dotnet ef database update
          */
+
+        public static void ExecuteMigrations(string connectionString)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<FunctionDbContext>();
+            optionsBuilder.UseSqlServer(connectionString);
+
+            using var context = new FunctionDbContext(optionsBuilder.Options);
+
+            try
+            {
+                context.Database.Migrate();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error when migrating database: {e.Message}");
+            }
+        }
     }
 
 

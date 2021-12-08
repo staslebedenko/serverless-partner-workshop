@@ -31,6 +31,8 @@ namespace Functions
                        options.UseSqlServer(connectionString, providerOptions => providerOptions.EnableRetryOnFailure());
                    }
                });
+
+            FunctionDbContext.ExecuteMigrations(connectionString);
         }
     }
 }
