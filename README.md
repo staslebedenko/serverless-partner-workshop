@@ -92,7 +92,7 @@ echo "applicationName  = " $applicationName
 
 az functionapp create --resource-group $groupName \
 --name $applicationName --storage-account $accountName --runtime $runtime \
---app-insights-key $instrumentationKey --consumption-plan-location $location --functions-version 4
+--app-insights-key $instrumentationKey --consumption-plan-location westeurope --functions-version 3
 
 az functionapp update --resource-group $groupName --name $applicationName --set dailyMemoryTimeQuota=400000
 
@@ -102,7 +102,7 @@ az functionapp identity assign --resource-group $groupName --name $applicationNa
 
 az functionapp config appsettings set --resource-group $groupName --name $applicationName --settings "MSDEPLOY_RENAME_LOCKED_FILES=1"
 
-managedIdKey=$(az functionapp identity show --name $applicationName --resource-group $groupName --query principalId --o tsv)
+managedIdKey=$(az functionapp identity show --name $applicationName --resource-group $groupName --query principalId --output tsv)
 echo "Managed Id key = " $managedIdKey
 
 #----------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ done
 sqlClientType=ado.net
 
 #TODO add Admin login and remove password, set to variable.
-sqlConString=$(az sql db show-connection-string --name $databaseName --server $serverName --client $sqlClientType --o tsv)
+sqlConString=$(az sql db show-connection-string --name $databaseName --server $serverName --client $sqlClientType --output tsv)
 sqlConString=${sqlConString/Password=<password>;}
 sqlConString=${sqlConString/<username>/$adminLogin}
 echo "SQL Connection string is = " $sqlConString
@@ -165,7 +165,7 @@ az keyvault secret set --vault-name $keyVaultName --name StorageConnectionString
 echo "setx PartnerSqlString \""$sqlConString\"
 echo "setx PartnerSqlPassword "$password
 echo "setx PartnerStorageString \""$connString\"
-echo "setx APPINSIGHTS_INSTRUMENTATIONKEY "$instrumentationKey
+echo "setx APPINSIGHTS_PARTNER "$instrumentationKey
 
 az functionapp deployment list-publishing-credentials --resource-group $groupName --name $applicationName
 url=$(az functionapp deployment source config-local-git --resource-group $groupName --name $applicationName --query url --output tsv)
