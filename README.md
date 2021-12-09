@@ -92,7 +92,7 @@ echo "applicationName  = " $applicationName
 
 az functionapp create --resource-group $groupName \
 --name $applicationName --storage-account $accountName --runtime $runtime \
---app-insights-key $instrumentationKey --consumption-plan-location westeurope --functions-version 3
+--app-insights-key $instrumentationKey --consumption-plan-location $location --functions-version 4
 
 az functionapp update --resource-group $groupName --name $applicationName --set dailyMemoryTimeQuota=400000
 
