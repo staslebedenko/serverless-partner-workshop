@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Data.Migrations
 {
-    [DbContext(typeof(FunctionDbContext))]
+    [DbContext(typeof(CosmosDbContext))]
     [Migration("20211208214741_InitialMigration")]
     partial class InitialMigration
     {

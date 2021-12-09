@@ -13,13 +13,16 @@ namespace Functions
     public class FortuneTellerController : BaseController
     {
         private readonly FunctionDbContext context;
+        private readonly CosmosDbContext cosmosContext;
 
         public FortuneTellerController(
             ILogger<FortuneTellerController> logger,
             IHttpContextAccessor httpContextAccessor,
-            FunctionDbContext context) : base(logger, httpContextAccessor)
+            FunctionDbContext context,
+            CosmosDbContext cosmosContext) : base(logger, httpContextAccessor)
         {
             this.context = context;
+            this.cosmosContext = cosmosContext;
         }
 
         [FunctionName("AskZoltar")]
@@ -34,7 +37,9 @@ namespace Functions
 
             base.LogInformation($"Prediction is done => {prediction}");
 
-            await this.SavePrediction(name, rate);
+            await this.SavePerson(name, rate);
+
+            await this.SavePrediction(rate);
 
             // throw new NotImplementedException();
 
@@ -47,11 +52,19 @@ namespace Functions
             return random.Next(40, 90);
         }
 
-        private async Task SavePrediction(string name, int rate)
+        private async Task SavePerson(string name, int rate)
         {
             var person = new Person() { Name = name, Prediction = rate };
             await this.context.AddAsync(person);
             await this.context.SaveChangesAsync();
+        }
+
+        private async Task SavePrediction(int rate)
+        {
+            await context.Database.EnsureCreatedAsync();
+            var prediction = new Prediction() { Id = new Guid(), Rate = rate, PartitionKey = "SmartStat" };
+            this.cosmosContext.Add(prediction);
+            await this.cosmosContext.SaveChangesAsync();
         }
     }
 }

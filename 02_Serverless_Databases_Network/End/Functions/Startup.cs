@@ -33,6 +33,20 @@ namespace Functions
                });
 
             FunctionDbContext.ExecuteMigrations(connectionString);
+
+            string cosmosUrl = Environment.GetEnvironmentVariable("PartnerCosmosUrl");
+            string cosmosKey = Environment.GetEnvironmentVariable("PartnerCosmosKey");
+            string cosmosDb = Environment.GetEnvironmentVariable("PartnerCosmosDatabase");
+
+            builder.Services.AddDbContext<CosmosDbContext>(options =>
+            {
+                options.UseCosmos(
+                    cosmosUrl,
+                    cosmosKey,
+                    cosmosDb);
+            });
+
+            CosmosDbContext.ExecuteMigrations(cosmosUrl, cosmosKey, cosmosDb);
         }
     }
 }
