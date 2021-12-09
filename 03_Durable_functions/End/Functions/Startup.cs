@@ -5,6 +5,8 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Identity;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -18,8 +20,33 @@ namespace Functions
             {
                 options.AddFilter("Functions", LogLevel.Information);
             });
-            string sqlString = Environment.GetEnvironmentVariable("PartnerSqlString");
-            string password = Environment.GetEnvironmentVariable("PartnerSqlPassword");
+
+            var signingKey = string.Empty;
+            string sqlString = string.Empty;
+            string password = string.Empty;
+            string cosmosUrl = string.Empty;
+            string cosmosKey = string.Empty;
+            string cosmosDb = string.Empty;
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+            {
+                SecretClient client = new SecretClient(new Uri(Environment.GetEnvironmentVariable("KeyVaultEndpoint")), new DefaultAzureCredential());
+
+                sqlString = client.GetSecret("PartnerSqlString").Value.ToString();
+                password = client.GetSecret("PartnerSqlPassword").Value.ToString();
+                cosmosUrl = client.GetSecret("PartnerCosmosUrl").Value.ToString();
+                cosmosKey = client.GetSecret("PartnerCosmosKey").Value.ToString();
+                cosmosDb = client.GetSecret("PartnerCosmosDatabase").Value.ToString();
+            }
+            else
+            {
+                sqlString = Environment.GetEnvironmentVariable("PartnerSqlString");
+                password = Environment.GetEnvironmentVariable("PartnerSqlPassword");
+                cosmosUrl = Environment.GetEnvironmentVariable("PartnerCosmosUrl");
+                cosmosKey = Environment.GetEnvironmentVariable("PartnerCosmosKey");
+                cosmosDb = Environment.GetEnvironmentVariable("PartnerCosmosDatabase");
+            }
+
             string connectionString = SqlConnectionBuilder.GetConnectionString(sqlString, password);
 
             //builder.Services.AddDbContextPool<FunctionDbContext>(
@@ -33,10 +60,6 @@ namespace Functions
                });
 
             FunctionDbContext.ExecuteMigrations(connectionString);
-
-            string cosmosUrl = Environment.GetEnvironmentVariable("PartnerCosmosUrl");
-            string cosmosKey = Environment.GetEnvironmentVariable("PartnerCosmosKey");
-            string cosmosDb = Environment.GetEnvironmentVariable("PartnerCosmosDatabase");
 
             builder.Services.AddDbContext<CosmosDbContext>(options =>
             {
