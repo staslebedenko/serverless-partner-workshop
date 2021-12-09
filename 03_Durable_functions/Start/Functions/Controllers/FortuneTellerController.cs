@@ -7,13 +7,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Domain;
 using Data;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using System.Collections.Generic;
 
 namespace Functions
 {
     public class FortuneTellerController : BaseController
     {
         private readonly FunctionDbContext context;
+
         private readonly CosmosDbContext cosmosContext;
+
+        private record NameParameter(string Name);
 
         public FortuneTellerController(
             ILogger<FortuneTellerController> logger,
@@ -27,44 +32,57 @@ namespace Functions
 
         [FunctionName("AskZoltar")]
         public async Task<IActionResult> AskZoltar(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route =  "api/AskZoltar/{name}")]
-            HttpRequest req,
-            string name)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/AskZoltar/{name}")] HttpRequest req,
+            string name,
+            [DurableClient] IDurableOrchestrationClient starter)
+        {
+            string instanceId = await starter.StartNewAsync("ZoltarOrchestrator", input: name);
+
+            base.LogInformation($"Started orchestration with ID = '{instanceId}'.");
+
+            return starter.CreateCheckStatusResponse(req, instanceId);
+        }
+
+        [FunctionName("ZoltarOrchestrator")]
+        public static async Task<List<string>> ZoltarOrchestrator([OrchestrationTrigger] IDurableOrchestrationContext context)
+        {
+            var outputs = new List<string>();
+
+            var rate = await context.CallActivityAsync<int>("ZoltarActivitySql", context.GetInput<string>());
+            outputs.Add(rate.ToString());
+
+            outputs.Add(await context.CallActivityAsync<string>("ZoltarActivityCosmos", rate));
+
+            return outputs;
+        }
+
+        [FunctionName("ZoltarActivitySql")]
+        public async Task<string> ZoltarActivitySql([ActivityTrigger] string name)
         {
             var rate = RatePrediction();
+            var person = new Person() { Name = name, Prediction = rate };
+            await this.context.AddAsync(person);
+            await this.context.SaveChangesAsync();
 
-            var prediction = $"Zoltar speaks! {name}, your rate will be '{rate}'.";
+            base.LogInformation($"Saved a new rate {rate} for {name}.");
+            return rate.ToString();
+        }
 
-            base.LogInformation($"Prediction is done => {prediction}");
+        [FunctionName("ZoltarActivityCosmos")]
+        public async Task<string> ZoltarActivityCosmos([ActivityTrigger] string rate)
+        {
+            Int32.TryParse(rate, out int correctRate);
+            var prediction = new Prediction() { Id = new Guid(), Rate = correctRate, PartitionKey = "SmartStat" };
+            this.cosmosContext.Add(prediction);
+            await this.cosmosContext.SaveChangesAsync();
 
-            await this.SavePerson(name, rate);
-
-            await this.SavePrediction(rate);
-
-            // throw new NotImplementedException();
-
-            return (ActionResult)new OkObjectResult(prediction);
+            return $"Saved for statistics {rate}";
         }
 
         private static int RatePrediction()
         {
             var random = new Random();
             return random.Next(40, 90);
-        }
-
-        private async Task SavePerson(string name, int rate)
-        {
-            var person = new Person() { Name = name, Prediction = rate };
-            await this.context.AddAsync(person);
-            await this.context.SaveChangesAsync();
-        }
-
-        private async Task SavePrediction(int rate)
-        {
-            await context.Database.EnsureCreatedAsync();
-            var prediction = new Prediction() { Id = new Guid(), Rate = rate, PartitionKey = "SmartStat" };
-            this.cosmosContext.Add(prediction);
-            await this.cosmosContext.SaveChangesAsync();
         }
     }
 }
