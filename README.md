@@ -155,17 +155,32 @@ az keyvault set-policy --name $keyVaultName --object-id $managedIdKey \
 --certificate-permissions get list --key-permissions get list --secret-permissions get list
 
 az keyvault secret set --vault-name $keyVaultName --name FancySecret  --value 'SuperSecret'
-az keyvault secret set --vault-name $keyVaultName --name SqlConnectionString  --value "$sqlConString"
-az keyvault secret set --vault-name $keyVaultName --name SqlConnectionPassword  --value $password
+az keyvault secret set --vault-name $keyVaultName --name PartnerSqlString  --value "$sqlConString"
+az keyvault secret set --vault-name $keyVaultName --name PartnerSqlPassword  --value $password
 az keyvault secret set --vault-name $keyVaultName --name StorageConnectionString  --value "$connString"
+az keyvault secret set --vault-name $keyVaultName --name PartnerCosmosUrl  --value "pleaseReplaceLater"
+az keyvault secret set --vault-name $keyVaultName --name PartnerCosmosKey  --value "PleaseReplaceLater"
+az keyvault secret set --vault-name $keyVaultName --name PartnerCosmosDatabase  --value "PleaseReplaceLater"
+
+keyVaultEndpoint="https://$keyVaultName.vault.azure.net"
+echo "keyVaultEndpoint  = " $keyVaultEndpoint
 
 # on your PC run CMD as administrator, then execute following commands and reboot PC.
 # just copy command setx string output below to CMD and execute, reboot Windows to take effect.
 
+az functionapp config appsettings set --resource-group $groupName --name $applicationName --settings "PartnerSqlString=$sqlConString"
+az functionapp config appsettings set --resource-group $groupName --name $applicationName --settings "PartnerSqlPassword=$password"
+az functionapp config appsettings set --resource-group $groupName --name $applicationName --settings "KeyVaultEndpoint=$keyVaultEndpoint"
+
 echo "setx PartnerSqlString \""$sqlConString\"
 echo "setx PartnerSqlPassword "$password
 echo "setx PartnerStorageString \""$connString\"
-echo "setx APPINSIGHTS_PARTNER "$instrumentationKey
+echo "setx AzureWebJobsStorage \""$connString\"
+echo "setx APPINSIGHTS_INSTRUMENTATIONKEY \""$instrumentationKey\"
+echo "setx KeyVaultEndpoint \""$keyVaultEndpoint\"
+echo "setx PartnerCosmosUrl PleaseReplaceLater"
+echo "setx PartnerCosmosKey PleaseReplaceLater"
+echo "setx PartnerCosmosDatabase PleaseReplaceLater"
 
 az functionapp deployment list-publishing-credentials --resource-group $groupName --name $applicationName
 url=$(az functionapp deployment source config-local-git --resource-group $groupName --name $applicationName --query url --output tsv)
