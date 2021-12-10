@@ -7,6 +7,13 @@ https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=
 Workshop is optimized for Visual Studio 2022, but can be done via other IDE like VSCode or Rider.
 And structured around steps with Start and End repositories for the each step, so you can monitor 
 
+Build around several steps
+1. Function observability, Errors and Testing
+2. Serverless Databases Azure SQL and CosmosDB
+3. Durable functions for orchestrations 
+4. Portability of Serverless apps
+5. Enterprise scenarios with PII
+6. Overview of DAPR, Azure Container Apps and lessons.
 
 Infrastructure as a code via Azure CLI.
 
@@ -187,3 +194,29 @@ url=$(az functionapp deployment source config-local-git --resource-group $groupN
 echo $url
 
 ```
+
+#  1. Function observability, Errors and Testing
+
+func azure functionapp publish adventworkshop16406
+
+
+#  2. Serverless Databases Azure SQL and CosmosDB
+
+
+
+#  3. Durable functions for orchestrations 
+
+
+
+#  4. Portability of Serverless apps
+
+
+
+#  5. Enterprise scenarios with PII
+
+
+
+#  6. Overview of DAPR, Azure Container Apps and lessons.
+
+
+
