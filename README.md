@@ -209,7 +209,7 @@ func azure functionapp publish adventworkshop16406
 
 
 #  4. Portability of Serverless apps
-
+https://medium.com/microsoftazure/lifting-function-to-kubernetes-with-keda-e24de86fca2e
 
 
 #  5. Enterprise scenarios with PII
