@@ -19,7 +19,7 @@ namespace Functions
 
         [FunctionName("AskZoltar")]
         public async Task<IActionResult> AskZoltar(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route =  "api/AskZoltar/{name}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route =  "api/AskZoltar/{name}")]
             HttpRequest req,
             string name)
         {
